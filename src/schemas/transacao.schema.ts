@@ -1,26 +1,34 @@
-import { z } from "zod";
-import { TipoEnum } from "./categoria.schema.ts";
+import { t } from "elysia";
+import { TipoEnum } from "./categoria.schema";
 
-export const TransacaoInputSchema = z.object({
-  descricao: z.string().min(1, "Descrição é obrigatória"),
+export const TransacaoInput = t.Object({
+  descricao: t.String({ minLength: 1, description: "Descrição da transação" }),
   tipo: TipoEnum,
-  categoriaId: z.string().optional(),
-  valor: z.number().positive("Valor deve ser positivo"),
-  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data deve estar no formato YYYY-MM-DD"),
+  categoriaId: t.Optional(t.String()),
+  valor: t.Number({ minimum: 0.01, description: "Valor da transação" }),
+  data: t.String({
+    pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+    description: "Data no formato YYYY-MM-DD"
+  }),
 });
 
-export const TransacaoSchema = TransacaoInputSchema.extend({
-  _id: z.string(),
-  criadaEm: z.date(),
+export const Transacao = t.Object({
+  _id: t.String(),
+  descricao: t.String(),
+  tipo: TipoEnum,
+  categoriaId: t.Optional(t.String()),
+  valor: t.Number(),
+  data: t.Date(),
+  criadaEm: t.Date(),
 });
 
-export const TransacaoFilterSchema = z.object({
-  tipo: TipoEnum.optional(),
-  categoriaId: z.string().optional(),
-  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+export const TransacaoFilter = t.Object({
+  tipo: t.Optional(TipoEnum),
+  categoriaId: t.Optional(t.String()),
+  dataInicio: t.Optional(t.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" })),
+  dataFim: t.Optional(t.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" })),
 });
 
-export type TransacaoInput = z.infer<typeof TransacaoInputSchema>;
-export type Transacao = z.infer<typeof TransacaoSchema>;
-export type TransacaoFilter = z.infer<typeof TransacaoFilterSchema>;
+export type TransacaoInputType = typeof TransacaoInput.static;
+export type TransacaoType = typeof Transacao.static;
+export type TransacaoFilterType = typeof TransacaoFilter.static;

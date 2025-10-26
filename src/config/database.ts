@@ -1,21 +1,20 @@
-import { MongoClient, Database } from "mongo";
+import { MongoClient, Db } from "mongodb";
+import { config } from "./env";
 
-let db: Database | null = null;
+let db: Db | null = null;
+let client: MongoClient | null = null;
 
-export async function connectDB(): Promise<Database> {
+export async function connectDB(): Promise<Db> {
   if (db) {
     return db;
   }
 
-  const mongoUri = Deno.env.get("MONGODB_URI") || "mongodb://localhost:27017";
-  const dbName = Deno.env.get("DB_NAME") || "controle_custos";
-
   try {
-    const client = new MongoClient();
-    await client.connect(mongoUri);
-    db = client.database(dbName);
+    client = new MongoClient(config.mongoUri);
+    await client.connect();
+    db = client.db(config.dbName);
 
-    console.log(`✅ Connected to MongoDB: ${dbName}`);
+    console.log(`✅ Connected to MongoDB: ${config.dbName}`);
 
     return db;
   } catch (error) {
@@ -24,9 +23,18 @@ export async function connectDB(): Promise<Database> {
   }
 }
 
-export function getDB(): Database {
+export function getDB(): Db {
   if (!db) {
     throw new Error("Database not initialized. Call connectDB() first.");
   }
   return db;
+}
+
+export async function closeDB(): Promise<void> {
+  if (client) {
+    await client.close();
+    db = null;
+    client = null;
+    console.log("✅ MongoDB connection closed");
+  }
 }

@@ -1,6 +1,6 @@
-import { Collection, ObjectId } from "mongo";
-import { getDB } from "../config/database.ts";
-import type { TransacaoInput, TransacaoFilter } from "../schemas/transacao.schema.ts";
+import { Collection, ObjectId } from "mongodb";
+import { getDB } from "../config/database";
+import type { TransacaoInputType, TransacaoFilterType } from "../schemas/transacao.schema";
 
 export interface TransacaoDocument {
   _id?: ObjectId;
@@ -19,7 +19,7 @@ export class TransacaoModel {
     this.collection = getDB().collection<TransacaoDocument>("transacoes");
   }
 
-  async findAll(filter?: TransacaoFilter) {
+  async findAll(filter?: TransacaoFilterType) {
     const query: any = {};
 
     if (filter?.tipo) {
@@ -47,7 +47,7 @@ export class TransacaoModel {
     return await this.collection.findOne({ _id: new ObjectId(id) });
   }
 
-  async create(data: TransacaoInput) {
+  async create(data: TransacaoInputType) {
     const transacao: TransacaoDocument = {
       descricao: data.descricao,
       tipo: data.tipo,
@@ -58,10 +58,10 @@ export class TransacaoModel {
     };
 
     const result = await this.collection.insertOne(transacao);
-    return await this.findById(result.toString());
+    return await this.findById(result.insertedId.toString());
   }
 
-  async update(id: string, data: Partial<TransacaoInput>) {
+  async update(id: string, data: Partial<TransacaoInputType>) {
     const updateData: any = { ...data };
 
     if (data.categoriaId) {
@@ -81,7 +81,7 @@ export class TransacaoModel {
 
   async delete(id: string) {
     const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
-    return result > 0;
+    return result.deletedCount > 0;
   }
 
   async getSaldoByPeriod(dataInicio: string, dataFim: string) {

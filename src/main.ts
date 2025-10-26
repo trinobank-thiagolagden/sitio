@@ -1,46 +1,56 @@
-import { Application } from "oak";
-import { config } from "./config/env.ts";
-import { connectDB } from "./config/database.ts";
-import router from "./routes/index.ts";
+import { Elysia } from "elysia";
+import { cors } from "@elysiajs/cors";
+import { config } from "./config/env";
+import { connectDB } from "./config/database";
+import { categoriasRoutes } from "./routes/categorias";
+import { transacoesRoutes } from "./routes/transacoes";
+import { relatoriosRoutes } from "./routes/relatorios";
 
-const app = new Application();
+const app = new Elysia()
+  // CORS middleware
+  .use(cors())
 
-// Middleware for logging requests
-app.use(async (ctx, next) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  console.log(`${ctx.request.method} ${ctx.request.url} - ${ms}ms`);
-});
+  // Logging middleware
+  .onRequest(({ request, path }) => {
+    const start = Date.now();
+    console.log(`→ ${request.method} ${path}`);
+    return { start };
+  })
 
-// Error handling middleware
-app.use(async (ctx, next) => {
-  try {
-    await next();
-  } catch (err) {
-    console.error("Error:", err);
-    ctx.response.status = 500;
-    ctx.response.body = { error: "Internal server error" };
-  }
-});
+  .onAfterHandle(({ request, path }, { start }) => {
+    const ms = Date.now() - (start as number);
+    console.log(`← ${request.method} ${path} - ${ms}ms`);
+  })
 
-// CORS middleware
-app.use(async (ctx, next) => {
-  ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-  ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  // Error handling
+  .onError(({ code, error, set }) => {
+    console.error("Error:", error);
 
-  if (ctx.request.method === "OPTIONS") {
-    ctx.response.status = 204;
-    return;
-  }
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return { error: "Dados inválidos", details: error.message };
+    }
 
-  await next();
-});
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return { error: "Recurso não encontrado" };
+    }
 
-// Routes
-app.use(router.routes());
-app.use(router.allowedMethods());
+    set.status = 500;
+    return { error: "Internal server error" };
+  })
+
+  // Health check
+  .get("/", () => ({
+    message: "API de Controle de Custos - Fazenda/Pessoal",
+    version: "1.0.0",
+    status: "online",
+  }))
+
+  // Routes
+  .use(categoriasRoutes)
+  .use(transacoesRoutes)
+  .use(relatoriosRoutes);
 
 // Start server
 async function startServer() {
@@ -49,12 +59,14 @@ async function startServer() {
     await connectDB();
 
     // Start HTTP server
+    app.listen(config.port);
+
     console.log(`🚀 Server running on http://localhost:${config.port}`);
     console.log(`📚 API documentation: /openapi.yaml`);
-    await app.listen({ port: config.port });
+    console.log(`\n✨ Using ElysiaJS + TypeBox + MongoDB\n`);
   } catch (error) {
     console.error("Failed to start server:", error);
-    Deno.exit(1);
+    process.exit(1);
   }
 }
 

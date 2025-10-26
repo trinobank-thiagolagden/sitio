@@ -4,11 +4,19 @@ API RESTful para controle de despesas e receitas, voltada para uso pessoal ou ge
 
 ## Tecnologias
 
-- **Runtime:** Deno
-- **Framework:** Oak
-- **Validação:** Zod
+- **Runtime:** Bun
+- **Framework:** ElysiaJS
+- **Validação:** TypeBox (integrado ao Elysia)
 - **Banco de dados:** MongoDB
 - **Formato:** JSON
+
+## Por que ElysiaJS?
+
+ElysiaJS é um framework web moderno e extremamente rápido para Bun que oferece:
+- **TypeBox integrado**: Validação de schemas com type-safety completo
+- **Performance superior**: Um dos frameworks Node.js/Bun mais rápidos
+- **API ergonômica**: Sintaxe fluente e intuitiva
+- **Type-safety end-to-end**: TypeScript do schema ao handler
 
 ## Estrutura do Projeto
 
@@ -18,32 +26,31 @@ sitio/
 │   ├── config/
 │   │   ├── database.ts       # Configuração do MongoDB
 │   │   └── env.ts            # Variáveis de ambiente
-│   ├── controllers/
-│   │   ├── categoria.controller.ts
-│   │   ├── transacao.controller.ts
-│   │   └── relatorio.controller.ts
 │   ├── models/
 │   │   ├── categoria.model.ts
 │   │   └── transacao.model.ts
 │   ├── schemas/
-│   │   ├── categoria.schema.ts
+│   │   ├── categoria.schema.ts   # TypeBox schemas
 │   │   ├── transacao.schema.ts
 │   │   └── relatorio.schema.ts
 │   ├── routes/
-│   │   └── index.ts
+│   │   ├── categorias.ts
+│   │   ├── transacoes.ts
+│   │   └── relatorios.ts
 │   └── main.ts               # Entry point
 ├── openapi.yaml              # Especificação OpenAPI
-├── deno.json                 # Configuração do Deno
+├── package.json              # Configuração do projeto
+├── tsconfig.json             # TypeScript config
 ├── .env.example              # Exemplo de variáveis de ambiente
 └── README.md
 ```
 
 ## Requisitos
 
-- [Deno](https://deno.land/) v1.37 ou superior
+- [Bun](https://bun.sh/) v1.0 ou superior
 - MongoDB v4.4 ou superior
 
-## Configuração
+## Instalação
 
 1. Clone o repositório:
 ```bash
@@ -51,7 +58,12 @@ git clone <repository-url>
 cd sitio
 ```
 
-2. Configure as variáveis de ambiente:
+2. Instale as dependências:
+```bash
+bun install
+```
+
+3. Configure as variáveis de ambiente:
 ```bash
 cp .env.example .env
 ```
@@ -63,7 +75,7 @@ MONGODB_URI=mongodb://localhost:27017
 DB_NAME=controle_custos
 ```
 
-3. Certifique-se de que o MongoDB está rodando:
+4. Certifique-se de que o MongoDB está rodando:
 ```bash
 # Com Docker
 docker run -d -p 27017:27017 --name mongodb mongo:latest
@@ -76,12 +88,12 @@ mongod
 
 ### Desenvolvimento (com auto-reload):
 ```bash
-deno task dev
+bun run dev
 ```
 
 ### Produção:
 ```bash
-deno task start
+bun start
 ```
 
 O servidor estará disponível em `http://localhost:8000`
@@ -180,22 +192,65 @@ A especificação completa da API está disponível no arquivo `openapi.yaml`.
 
 ## Boas Práticas Implementadas
 
-1. **Validação de dados** com Zod em todos os endpoints
-2. **Tratamento de erros** centralizado
-3. **Índices MongoDB** recomendados:
+1. **Validação automática** com TypeBox em todos os endpoints
+2. **Type-safety end-to-end** com TypeScript e Elysia
+3. **Tratamento de erros** centralizado
+4. **CORS configurado** para aceitar requisições de qualquer origem
+5. **Logging de requisições** com tempo de resposta
+6. **Índices MongoDB** recomendados:
    - `transacoes.data` (para relatórios)
    - `transacoes.tipo` (para filtros)
    - `transacoes.categoriaId` (para filtros)
+7. **Agregação MongoDB** para cálculo de saldo otimizado
 
-4. **Agregação MongoDB** para cálculo de saldo otimizado
+## Vantagens do Stack ElysiaJS
+
+### Performance
+- Bun é até 4x mais rápido que Node.js
+- ElysiaJS é otimizado para o runtime Bun
+- Validação TypeBox é mais rápida que Zod
+
+### Developer Experience
+- Type-safety automático dos schemas para os handlers
+- Hot-reload instantâneo durante desenvolvimento
+- API intuitiva e fluente
+
+### Exemplo de Type-Safety
+```typescript
+// O schema TypeBox automaticamente infere os tipos
+.post("/categorias", async ({ body }) => {
+  // 'body' já está tipado como CategoriaInput!
+  const categoria = await categoriaModel.create(body);
+  return categoria;
+}, {
+  body: CategoriaInput // Schema TypeBox
+})
+```
 
 ## Extensões Futuras
 
-- Autenticação JWT
+- Autenticação JWT com plugin Elysia
 - Suporte a múltiplas fazendas/propriedades
 - Relatórios detalhados por categoria
 - Export de relatórios (PDF, CSV)
 - Dashboard web
+- Documentação Swagger automática (Elysia Swagger plugin)
+
+## Comandos Úteis
+
+```bash
+# Instalar dependências
+bun install
+
+# Desenvolvimento com hot-reload
+bun run dev
+
+# Produção
+bun start
+
+# Verificar tipos TypeScript
+bun x tsc --noEmit
+```
 
 ## Licença
 

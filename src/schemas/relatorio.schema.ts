@@ -1,17 +1,23 @@
-import { z } from "zod";
+import { t } from "elysia";
 
-export const RelatorioSaldoQuerySchema = z.object({
-  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data deve estar no formato YYYY-MM-DD"),
-  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data deve estar no formato YYYY-MM-DD"),
+export const RelatorioSaldoQuery = t.Object({
+  dataInicio: t.String({
+    pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+    description: "Data inicial no formato YYYY-MM-DD"
+  }),
+  dataFim: t.String({
+    pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+    description: "Data final no formato YYYY-MM-DD"
+  }),
 });
 
-export const RelatorioSaldoSchema = z.object({
-  periodoInicio: z.string(),
-  periodoFim: z.string(),
-  totalReceitas: z.number(),
-  totalDespesas: z.number(),
-  saldo: z.number(),
+export const RelatorioSaldo = t.Object({
+  periodoInicio: t.String(),
+  periodoFim: t.String(),
+  totalReceitas: t.Number(),
+  totalDespesas: t.Number(),
+  saldo: t.Number(),
 });
 
-export type RelatorioSaldoQuery = z.infer<typeof RelatorioSaldoQuerySchema>;
-export type RelatorioSaldo = z.infer<typeof RelatorioSaldoSchema>;
+export type RelatorioSaldoQueryType = typeof RelatorioSaldoQuery.static;
+export type RelatorioSaldoType = typeof RelatorioSaldo.static;

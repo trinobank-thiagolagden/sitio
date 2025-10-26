@@ -1,0 +1,19 @@
+{
+  "name": "controle-custos-api",
+  "version": "1.0.0",
+  "description": "API de Controle de Custos - Fazenda/Pessoal",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "bun --watch src/main.ts",
+    "start": "bun src/main.ts"
+  },
+  "dependencies": {
+    "elysia": "^1.0.0",
+    "@elysiajs/cors": "^1.0.0",
+    "mongodb": "^6.3.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "type": "module"
+}

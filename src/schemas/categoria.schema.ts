@@ -1,16 +1,18 @@
-import { z } from "zod";
+import { t } from "elysia";
 
-export const TipoEnum = z.enum(["despesa", "receita"]);
+export const TipoEnum = t.Union([t.Literal("despesa"), t.Literal("receita")]);
 
-export const CategoriaInputSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório"),
+export const CategoriaInput = t.Object({
+  nome: t.String({ minLength: 1, description: "Nome da categoria" }),
   tipo: TipoEnum,
 });
 
-export const CategoriaSchema = CategoriaInputSchema.extend({
-  _id: z.string(),
-  criadaEm: z.date(),
+export const Categoria = t.Object({
+  _id: t.String(),
+  nome: t.String(),
+  tipo: TipoEnum,
+  criadaEm: t.Date(),
 });
 
-export type CategoriaInput = z.infer<typeof CategoriaInputSchema>;
-export type Categoria = z.infer<typeof CategoriaSchema>;
+export type CategoriaInputType = typeof CategoriaInput.static;
+export type CategoriaType = typeof Categoria.static;

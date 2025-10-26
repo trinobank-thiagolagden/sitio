@@ -1,6 +1,6 @@
-import { Collection, ObjectId } from "mongo";
-import { getDB } from "../config/database.ts";
-import type { CategoriaInput } from "../schemas/categoria.schema.ts";
+import { Collection, ObjectId } from "mongodb";
+import { getDB } from "../config/database";
+import type { CategoriaInputType } from "../schemas/categoria.schema";
 
 export interface CategoriaDocument {
   _id?: ObjectId;
@@ -24,17 +24,17 @@ export class CategoriaModel {
     return await this.collection.findOne({ _id: new ObjectId(id) });
   }
 
-  async create(data: CategoriaInput) {
+  async create(data: CategoriaInputType) {
     const categoria: CategoriaDocument = {
       ...data,
       criadaEm: new Date(),
     };
 
     const result = await this.collection.insertOne(categoria);
-    return await this.findById(result.toString());
+    return await this.findById(result.insertedId.toString());
   }
 
-  async update(id: string, data: Partial<CategoriaInput>) {
+  async update(id: string, data: Partial<CategoriaInputType>) {
     await this.collection.updateOne(
       { _id: new ObjectId(id) },
       { $set: data }
@@ -44,6 +44,6 @@ export class CategoriaModel {
 
   async delete(id: string) {
     const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
-    return result > 0;
+    return result.deletedCount > 0;
   }
 }
