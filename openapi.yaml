@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: API de Controle de Custos - Fazenda/Pessoal
+  version: 1.0.0
+  description: >
+    API para controle de despesas e receitas, voltada para uso pessoal ou gestão de fazendas.
+    Suporta categorias, lançamentos financeiros e geração de relatórios de saldo.
+
+servers:
+  - url: https://api.fazenda.local/v1
+
+tags:
+  - name: Categorias
+    description: Gerenciamento de categorias de custo e receita.
+  - name: Transações
+    description: Registro de despesas e receitas.
+  - name: Relatórios
+    description: Consolidação de saldos e totais.
+
+paths:
+  /categorias:
+    get:
+      tags: [Categorias]
+      summary: Lista todas as categorias
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categoria'
+
+    post:
+      tags: [Categorias]
+      summary: Cria uma nova categoria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoriaInput'
+      responses:
+        '201':
+          description: Categoria criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Categoria'
+
+  /transacoes:
+    get:
+      tags: [Transações]
+      summary: Lista transações com filtros opcionais
+      parameters:
+        - name: tipo
+          in: query
+          description: Filtra por tipo (`despesa` ou `receita`)
+          schema: { type: string, enum: [despesa, receita] }
+        - name: categoriaId
+          in: query
+          schema: { type: string }
+        - name: dataInicio
+          in: query
+          schema: { type: string, format: date }
+        - name: dataFim
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Lista de transações filtradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transacao'
+
+    post:
+      tags: [Transações]
+      summary: Cria uma nova transação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransacaoInput'
+      responses:
+        '201':
+          description: Transação criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transacao'
+
+  /relatorios/saldo:
+    get:
+      tags: [Relatórios]
+      summary: Retorna o saldo consolidado no período
+      parameters:
+        - name: dataInicio
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: dataFim
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Resumo de saldo no período
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelatorioSaldo'
+
+components:
+  schemas:
+    Categoria:
+      type: object
+      properties:
+        _id: { type: string, example: "671c49f4ea7f4f001234abcd" }
+        nome: { type: string, example: "Ração" }
+        tipo: { type: string, enum: [despesa, receita], example: "despesa" }
+        criadaEm: { type: string, format: date-time }
+
+    CategoriaInput:
+      type: object
+      required: [nome, tipo]
+      properties:
+        nome: { type: string }
+        tipo: { type: string, enum: [despesa, receita] }
+
+    Transacao:
+      type: object
+      properties:
+        _id: { type: string, example: "671c4a9de8f5b800125678ef" }
+        descricao: { type: string, example: "Compra de sementes" }
+        tipo: { type: string, enum: [despesa, receita], example: "despesa" }
+        categoriaId: { type: string, example: "671c49f4ea7f4f001234abcd" }
+        valor: { type: number, example: 1500.75 }
+        data: { type: string, format: date, example: "2025-10-10" }
+        criadaEm: { type: string, format: date-time }
+
+    TransacaoInput:
+      type: object
+      required: [descricao, tipo, valor, data]
+      properties:
+        descricao: { type: string }
+        tipo: { type: string, enum: [despesa, receita] }
+        categoriaId: { type: string }
+        valor: { type: number }
+        data: { type: string, format: date }
+
+    RelatorioSaldo:
+      type: object
+      properties:
+        periodoInicio: { type: string, format: date, example: "2025-10-01" }
+        periodoFim: { type: string, format: date, example: "2025-10-31" }
+        totalReceitas: { type: number, example: 12000.00 }
+        totalDespesas: { type: number, example: 8500.00 }
+        saldo: { type: number, example: 3500.00 }
