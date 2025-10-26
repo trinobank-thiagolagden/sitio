@@ -78,7 +78,7 @@ DB_NAME=controle_custos
 4. Certifique-se de que o MongoDB está rodando:
 ```bash
 # Com Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
+docker run -d -p 27017:27017 --name mongodb mongo:8-noble
 
 # Ou inicie o serviço local
 mongod
